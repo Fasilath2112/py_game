@@ -5,26 +5,22 @@ def get_random_word():
         wordlist = file.read().splitlines()
     return random.choice(wordlist).lower()
 
-def validate_input(character):
+def is_valid_input(character):
     return len(character) == 1 and character.isalpha()
 
-def already_guessed(character, guessed_chars):
+def is_already_guessed(character, guessed_chars):
     return character in guessed_chars
 
-def handle_guess(word, guessed_chars, chances, character):
-    if not validate_input(character):
-        return guessed_chars, chances, False
-
-    if already_guessed(character, guessed_chars):
-        return guessed_chars, chances, False
-
+def handle_correct_guess(word, guessed_chars, temp, character):
     guessed_chars.append(character)
+    print("\nBravo! You found a letter. You're one step closer to victory!")
+    return update_display(word, guessed_chars)
 
-    if character in word:
-        return guessed_chars, chances, True
-    else:
-        chances -= 1
-        return guessed_chars, chances, False
+def handle_wrong_guess(chances, word, guessed_chars):
+    print("\nOops!! Wrong guess..")
+    chances -= 1
+    draw_hangman(chances)
+    return chances
 
 def update_display(word, guessed_chars):
     temp = ''
@@ -33,7 +29,7 @@ def update_display(word, guessed_chars):
             temp += char + ' '
         else:
             temp += '_ '
-    return temp.rstrip()  # Remove trailing spaces
+    return temp.rstrip()
 
 def draw_hangman(chances):
     if chances == 7:
@@ -101,39 +97,55 @@ def lose_game(word):
     print("\nNo! The word remains unsolved and the hangman claims another victim.")
     print(f"\nThe word was: {word}")
 
-def run_game():
-    word = get_random_word()
+def display_game_state(temp, chances, guessed_chars):
+    print(temp)
+    print(f"\nChances left: {chances}... the hangman's breath is on your neck.")
+    print(f"Guessed letters: {', '.join(guessed_chars)}")
+
+def play_game(word):
     temp = '_ ' * len(word)
     chances = 7
     guessed_chars = []
 
     while chances > 0 and '_ ' in temp:
-        guessed_chars, chances, valid_guess = handle_guess(word, guessed_chars, chances, input("Enter a letter....if you dare: ").lower())
-        if valid_guess:
-            temp = update_display(word, guessed_chars)
+        character = input("Enter a letter....if you dare: ").lower()
+
+        if not is_valid_input(character):
+            print("Invalid input. Please enter a single alphabetic character.")
+            continue
+
+        if is_already_guessed(character, guessed_chars):
+            print(f"You've already guessed '{character}'. Try another letter.")
+            continue
+
+        if character in word:
+            temp = handle_correct_guess(word, guessed_chars, temp, character)
         else:
-            draw_hangman(chances)
-            print(update_display(word, guessed_chars))  # Display updated word after drawing hangman
+            chances = handle_wrong_guess(chances, word, guessed_chars)
+
+        display_game_state(temp, chances, guessed_chars)
+
+    return temp, chances
+
+def start_game():
+    word = get_random_word()
+    temp, chances = play_game(word)
 
     if '_ ' not in temp:
         win_game(word)
     else:
         lose_game(word)
 
-def play_hangman():
+if __name__ == "__main__":
     print("\n******* Welcome to Hangman, where every wrong guess tightens the noose.. *******")
     print("-----------------------------------------------------------------------------------")
-
     while True:
         choice = input("Can you solve the word before time runs and the darkness claims another soul? (yes/no): ").lower()
         if choice == 'yes':
-            run_game()
+            start_game()
         elif choice == 'no':
             print("Quitting the game...")
             break
         else:
             print("Please enter a valid choice")
         print("\n")
-
-if __name__ == "__main__":
-    play_hangman()
