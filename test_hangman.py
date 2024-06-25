@@ -1,7 +1,9 @@
+# test_hangman.py
+
 import unittest
 from unittest.mock import patch, mock_open
 from hangmangame import (
-    get_random_word, draw_hangman, validate_input, already_guessed, handle_guess,
+    get_random_word, draw_hangman, is_valid_input, is_already_guessed, handle_correct_guess, handle_wrong_guess,
     update_display, win_game, lose_game
 )
 
@@ -36,57 +38,47 @@ class TestHangman(unittest.TestCase):
             mocked_print.assert_any_call("________      ")
 
     def test_validate_input_valid(self):
-        self.assertTrue(validate_input('a'))
-        self.assertTrue(validate_input('A'))  # Test case insensitivity
+        self.assertTrue(is_valid_input('a'))
+        self.assertTrue(is_valid_input('A'))  # Test case insensitivity
 
     def test_validate_input_non_alphabet(self):
-        self.assertFalse(validate_input('1'))
-        self.assertFalse(validate_input('?'))
-        self.assertFalse(validate_input(' '))
+        self.assertFalse(is_valid_input('1'))
+        self.assertFalse(is_valid_input('?'))
+        self.assertFalse(is_valid_input(' '))
 
     def test_validate_input_multiple_characters(self):
-        self.assertFalse(validate_input('ab'))
+        self.assertFalse(is_valid_input('ab'))
 
     def test_validate_input_null(self):
-        self.assertFalse(validate_input(''))
+        self.assertFalse(is_valid_input(''))
 
     def test_already_guessed_true(self):
         guessed_chars = ['a', 'b', 'c']
-        self.assertTrue(already_guessed('a', guessed_chars))
+        self.assertTrue(is_already_guessed('a', guessed_chars))
 
     def test_already_guessed_false(self):
         guessed_chars = ['a', 'b', 'c']
-        self.assertFalse(already_guessed('d', guessed_chars))
+        self.assertFalse(is_already_guessed('d', guessed_chars))
 
-    def test_handle_guess_valid_guess(self):
+    def test_handle_correct_guess(self):
         word = 'hangman'
         guessed_chars = []
+        temp = '_ _ _ _ _ _ _ '
+        character = 'a'
+
+        new_temp = handle_correct_guess(word, guessed_chars, temp, character)
+        self.assertEqual(new_temp, '_ a _ _ _ a _')
+
+        new_temp = handle_correct_guess(word, guessed_chars, new_temp, 'n')
+        self.assertEqual(new_temp, '_ a n _ _ a n')
+
+    def test_handle_wrong_guess(self):
         chances = 7
-
-        guessed_chars, chances, valid_guess = handle_guess(word, guessed_chars, chances, 'a')
-        self.assertTrue(valid_guess)
-        self.assertEqual(guessed_chars, ['a'])
-        self.assertEqual(chances, 7)
-
-    def test_handle_guess_already_guessed(self):
-        word = 'hangman'
-        guessed_chars = ['a']
-        chances = 7
-
-        guessed_chars, chances, valid_guess = handle_guess(word, guessed_chars, chances, 'a')
-        self.assertFalse(valid_guess)
-        self.assertEqual(guessed_chars, ['a'])
-        self.assertEqual(chances, 7)
-
-    def test_handle_guess_incorrect(self):
         word = 'hangman'
         guessed_chars = []
-        chances = 7
 
-        guessed_chars, chances, valid_guess = handle_guess(word, guessed_chars, chances, 'z')
-        self.assertFalse(valid_guess)
-        self.assertEqual(guessed_chars, ['z'])
-        self.assertEqual(chances, 6)
+        new_chances = handle_wrong_guess(chances, word, guessed_chars)
+        self.assertEqual(new_chances, 6)
 
     def test_update_display(self):
         word = 'hangman'
@@ -107,4 +99,3 @@ class TestHangman(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
