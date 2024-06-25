@@ -1,3 +1,5 @@
+# hangmangame.py
+
 import random
 
 def get_random_word():
@@ -12,8 +14,11 @@ def is_already_guessed(character, guessed_chars):
     return character in guessed_chars
 
 def handle_correct_guess(word, guessed_chars, temp, character):
-    guessed_chars.append(character)
-    print("\nBravo! You found a letter. You're one step closer to victory!")
+    if character not in guessed_chars:  # Check if character has not been guessed already
+        guessed_chars.append(character)
+        print("\nBravo! You found a letter. You're one step closer to victory!")
+    else:
+        print(f"You've already guessed '{character}'. Try another letter.")
     return update_display(word, guessed_chars)
 
 def handle_wrong_guess(chances, word, guessed_chars):
